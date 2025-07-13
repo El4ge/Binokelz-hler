@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Binokel Punktezähler</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; max-width: 600px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f4f4f4; }
+    input[type=number] { width: 60px; }
+  </style>
+</head>
+<body>
+  <h1>Binokel Punktezähler</h1>
+
+  <form id="scoreForm">
+    <h3>Neues Spiel eintragen</h3>
+    <label><b>Ich:</b><br>Gemeldet: <input type="number" id="ichGemeldet" required>
+           Gereizt: <input type="number" id="ichGereizt" required>
+           Erspielt: <input type="number" id="ichErspielt" required></label><br><br>
+    <label><b>Du:</b><br>Gemeldet: <input type="number" id="duGemeldet" required>
+           Gereizt: <input type="number" id="duGereizt" required>
+           Erspielt: <input type="number" id="duErspielt" required></label><br><br>
+    <button type="submit">Spiel hinzufügen</button>
+    <button type="button" onclick="resetData()">Zurücksetzen</button>
+  </form>
+
+  <h3>Spieleübersicht</h3>
+  <table id="gameTable">
+    <thead>
+      <tr>
+        <th>Spiel</th>
+        <th>Ich</th>
+        <th>Du</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr>
+        <th>Gesamt</th>
+        <th id="totalIch">0</th>
+        <th id="totalDu">0</th>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script>
+    let spiele = JSON.parse(localStorage.getItem('binokelSpiele')) || [];
+
+    function updateTable() {
+      const tbody = document.querySelector("#gameTable tbody");
+      const totalIch = document.getElementById("totalIch");
+      const totalDu = document.getElementById("totalDu");
+
+      tbody.innerHTML = "";
+      let sumIch = 0, sumDu = 0;
+
+      spiele.forEach((spiel, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>Spiel ${index + 1}</td>
+          <td>${spiel.ich}</td>
+          <td>${spiel.du}</td>
+        `;
+        tbody.appendChild(row);
+        sumIch += spiel.ich;
+        sumDu += spiel.du;
+      });
+
+      totalIch.textContent = sumIch;
+      totalDu.textContent = sumDu;
+
+      localStorage.setItem('binokelSpiele', JSON.stringify(spiele));
+    }
+
+    document.getElementById("scoreForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const ich = parseInt(document.getElementById("ichGemeldet").value) +
+                  parseInt(document.getElementById("ichGereizt").value) +
+                  parseInt(document.getElementById("ichErspielt").value);
+      const du = parseInt(document.getElementById("duGemeldet").value) +
+                 parseInt(document.getElementById("duGereizt").value) +
+                 parseInt(document.getElementById("duErspielt").value);
+      spiele.push({ ich, du });
+      updateTable();
+      this.reset();
+    });
+
+    function resetData() {
+      if (confirm("Willst du wirklich alle Einträge löschen?")) {
+        spiele = [];
+        updateTable();
+      }
+    }
+
+    updateTable();
+  </script>
+</body>
+</html>
